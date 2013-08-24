@@ -1,0 +1,72 @@
+from markov import Markov
+
+
+class  Manager:
+    __transitionMatrix = {}
+    __frequencyMat ={}
+    __threshold = 0.00000000001 #below it's good password
+    __n = 3 #in case the user didn't define n
+    
+    #load the password file and generate the matrixs
+    def loadPasswordList(self,passwordfile,N):
+        #check for bad inputs
+        if ((type(N)!= int)or(N<=0)):
+            print "error type of N"
+            return -1
+
+        if (passwordfile == None):
+            print "ERROR EMPTY file"
+            return -1
+        else:
+            try:
+                #load the file                
+                passwordlist = [line.strip() for line in open(passwordfile)]
+                markovInstant = Markov()
+                #now calculate the requierd matrixes
+                self.__frequencyMat = markovInstant.generateFrequencyMatrix(passwordlist,self.__n)
+                InfinityMat = markovInstant.calculateInfinityMatrix(self.__frequencyMat,self.__n)
+                self.__transitionMatrix =markovInstant.generateTransitionMatrix(self.__frequencyMat, InfinityMat,self.__n)
+
+            except:
+                print "There was an error while loading the file "
+                return -1
+
+    #return the Ngrams
+    def viewNgrams(self):
+        if (self.__frequencyMat!={}):
+            return (self.__frequencyMat)
+        else:
+            return -1
+ 
+    def computeMarkovStrenght(self,password):
+        #check for errors:
+        if(len(password)<self.__n):
+            print "error password lenght must be greater than N "
+            return -1
+        if (self.__transitionMatrix=={}):
+            return -1
+        #check for bad 
+        markovInstant = Markov()
+        val1= markovInstant.computePobability(self.__transitionMatrix,self.__n, password)
+        
+        #error handler:
+        if (val1<0):
+            return -1
+        
+        if (val1< self.__threshold):
+            val2= "good" #that means it a good password
+        else:
+            val2 = "bad" #probaly a good attacker would guess the pass
+        
+        return [val1,val2]
+    
+    #feature disable: Thresold change
+    #change the parameters, this version is only N
+    def changeConfiguration(self,N):
+        if ((0<N)and (N<6)):
+            # if  ((Threshold>0)and(Threshold<1)):                
+            self.__n = N
+            #self.__threshold = Threshold
+            print "ChangedConfiguration"
+            
+        return -1
