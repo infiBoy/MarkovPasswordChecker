@@ -1,0 +1,201 @@
+#Boa:Frame:MainFrame
+
+import wx.grid
+import wx.lib.buttons
+from manager  import Manager 
+
+def create(parent):
+    return MainFrame(parent)
+
+[wxID_MainFrame, wxID_MainFrameBTNCHECKPASSWORD, wxID_MainFrameBTNLOAD, 
+ wxID_MainFrameBTNNGRAMS, wxID_MainFrameBTNUPADTE, wxID_MainFrameLBLERROR, 
+ wxID_MainFrameLBLPATH, wxID_MainFrameLBLRESULT, wxID_MainFrameNUMCTRL1, 
+ wxID_MainFrameSPINNVALUE, wxID_MainFrameSTATICBOX1, wxID_MainFrameSTATICBOX2, 
+ wxID_MainFrameSTATICBOX3, wxID_MainFrameSTATICTEXT1, wxID_MainFrameSTATICTEXT2, 
+ wxID_MainFrameSTATICTEXT3, wxID_MainFrameSTATICTEXT4, wxID_MainFrameSTATICTEXT5, 
+ wxID_MainFrameTXTPASSWORD, 
+] = [wx.NewId() for _init_ctrls in range(19)]
+
+#the dialog to import a file
+def get_path(wildcard):
+    app = wx.App(None)
+    style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+    dialog = wx.FileDialog(None, 'Open', wildcard=wildcard, style=style)
+    if dialog.ShowModal() == wx.ID_OK:
+        path = dialog.GetPath()
+    else:
+        path = None
+    dialog.Destroy()
+    return path
+    
+#A grid to view N-grams
+class SimpleGrid(wx.grid.Grid):
+    def __init__(self, parent,Ngram):
+        wx.grid.Grid.__init__(self, parent, -1)
+        self.CreateGrid(len(Ngram), 2) #Ngram rows + 2 colums 
+        self.SetColLabelValue(0, "N-gram")
+        self.SetColLabelValue(1, "Number of Occurrences")
+        
+        #now fill the table with the Dictonary valus
+        ind =0
+        for key in Ngram:
+            self.SetCellValue(ind, 0, key[0:-1]+"|"+key[-1])
+            self.SetCellValue(ind, 1, str(Ngram[key]))
+            ind=ind+1
+
+#the frame that Contain the simple grid
+class FrameGrid(wx.Frame):
+    def __init__(self, parent,Ngram):
+        wx.Frame.__init__(self, parent, -1, "N-grams from the password file",
+                size=(350, 350))
+        grid = SimpleGrid(self,Ngram)
+
+
+
+
+
+#this is the main frame of the
+#all the controls were genereted automatically by 
+# Boa IDE - this is why there are bad names:)
+class MainFrame(wx.Frame):
+    myManager = None
+    
+    def _init_ctrls(self, prnt):
+        # generated method, don't edit
+        wx.Frame.__init__(self, id=wxID_MainFrame, name='', parent=prnt,
+              pos=wx.Point(253, 248), size=wx.Size(683, 445),
+              style=wx.DEFAULT_FRAME_STYLE,
+              title=u'Password Strenght Checker Using Markov chains  - MMN 13-Guy Barshap')
+        self.SetClientSize(wx.Size(683, 445))
+
+        self.staticBox1 = wx.StaticBox(id=wxID_MainFrameSTATICBOX1,
+              label=u'learning phase', name='staticBox1', parent=self,
+              pos=wx.Point(48, 40), size=wx.Size(310, 208), style=0)
+
+ 
+        self.staticBox3 = wx.StaticBox(id=wxID_MainFrameSTATICBOX3, label=u'',
+              name='staticBox3', parent=self, pos=wx.Point(48, 256),
+              size=wx.Size(592, 124), style=0)
+
+        self.staticText1 = wx.StaticText(id=wxID_MainFrameSTATICTEXT1,
+              label=u'Password to check:', name='staticText1', parent=self,
+              pos=wx.Point(72, 312), size=wx.Size(129, 17), style=0)
+
+        self.txtPassword = wx.TextCtrl(id=wxID_MainFrameTXTPASSWORD,
+              name=u'txtPassword', parent=self, pos=wx.Point(224, 312),
+              size=wx.Size(160, 24), style=0, value=u'password1')
+
+        self.btnCheckPassword = wx.Button(id=wxID_MainFrameBTNCHECKPASSWORD,
+              label=u'Check Password', name=u'btnCheckPassword', parent=self,
+              pos=wx.Point(464, 312), size=wx.Size(144, 40), style=0)
+        self.btnCheckPassword.Bind(wx.EVT_BUTTON, self.OnBtnCheckPasswordButton,
+              id=wxID_MainFrameBTNCHECKPASSWORD)
+
+        self.staticText2 = wx.StaticText(id=wxID_MainFrameSTATICTEXT2,
+              label=u'The Result in Number is:', name='staticText2',
+              parent=self, pos=wx.Point(80, 352), size=wx.Size(161, 17),
+              style=0)
+
+        self.lblResult = wx.StaticText(id=wxID_MainFrameLBLRESULT, label=u'Result',
+              name=u'lblResult', parent=self, pos=wx.Point(272, 352),
+              size=wx.Size(43, 17), style=0)
+        self.lblResult.SetForegroundColour((0,0,255))
+        self.staticText3 = wx.StaticText(id=wxID_MainFrameSTATICTEXT3,
+              label=u'load the password list:', name='staticText3', parent=self,
+              pos=wx.Point(80, 80), size=wx.Size(153, 17), style=0)
+
+        self.btnLoad = wx.Button(id=wxID_MainFrameBTNLOAD, label=u'load password',
+              name=u'btnLoad', parent=self, pos=wx.Point(88, 112),
+              size=wx.Size(136, 32), style=0)
+        self.btnLoad.Bind(wx.EVT_BUTTON, self.OnBtnLoadButton,
+              id=wxID_MainFrameBTNLOAD)
+
+        self.btnNgrams = wx.Button(id=wxID_MainFrameBTNNGRAMS,
+              label=u'View N-grams', name=u'btnNgrams', parent=self,
+              pos=wx.Point(96, 208), size=wx.Size(136, 32), style=0)
+        self.btnNgrams.Bind(wx.EVT_BUTTON, self.OnButton2Button,
+              id=wxID_MainFrameBTNNGRAMS)
+
+        self.spinNValue = wx.SpinCtrl(id=wxID_MainFrameSPINNVALUE, initial=2,
+              max=5, min=1, name=u'spinNValue', parent=self, pos=wx.Point(552,
+              88), size=wx.Size(40, 27), style=wx.SP_ARROW_KEYS)
+
+        self.btnUpadte = wx.lib.buttons.GenButton(id=wxID_MainFrameBTNUPADTE,
+              label=u'Update', name=u'btnUpadte', parent=self, pos=wx.Point(424,
+              176), size=wx.Size(91, 30), style=0)
+        self.btnUpadte.Bind(wx.EVT_BUTTON, self.OnGenButton1Button,
+              id=wxID_MainFrameBTNUPADTE)
+
+        self.staticText4 = wx.StaticText(id=wxID_MainFrameSTATICTEXT4,
+              label=u'N the markov order       =', name='staticText4', parent=self,
+              pos=wx.Point(368, 88), size=wx.Size(200, 17), style=0)
+
+
+
+
+        self.lblError = wx.StaticText(id=wxID_MainFrameLBLERROR, label=u'',
+              name=u'lblError', parent=self, pos=wx.Point(184, 400),
+              size=wx.Size(1, 17), style=0 )
+        self.lblError.SetForegroundColour((255,0,0))
+
+        self.lblPath = wx.StaticText(id=wxID_MainFrameLBLPATH, label=u'path = ',
+              name=u'lblPath', parent=self, pos=wx.Point(56, 160),
+              size=wx.Size(224, 40), style=0)
+
+    def __init__(self, parent):
+        self._init_ctrls(parent)
+        self.myManager = Manager() 
+
+    #this is Update Button(the bad name is thanks to Boa IDE)
+    def OnGenButton1Button(self, event):
+        N         =  int(self.spinNValue.GetValue())
+        self.myManager.changeConfiguration(N)
+        event.Skip()
+
+    #load the password file
+    def OnBtnLoadButton(self, event):
+        #get only text files,that each line contained a password
+        path =  get_path('*.txt')
+        if path!=None:
+            self.lblPath.Label='path:'+path
+            #Now generate the Matrixs
+            self.myManager.loadPasswordList(path, 3) #todo: changeme!
+        
+
+        event.Skip()
+
+    #this is the button to View the N-grams
+    def OnButton2Button(self, event):
+        currNgrams = self.myManager.viewNgrams()
+        if currNgrams ==-1:
+            self.lblError.Label="please load the password first"
+        else:
+            self.lblError.Label=""
+            app = wx.PySimpleApp()
+            frame = FrameGrid(None,currNgrams)
+            frame.Show(True)
+            app.MainLoop()
+            event.Skip()
+
+    #the event handler for CheckButton
+    def OnBtnCheckPasswordButton(self, event):
+        #retrieve the password
+        password = str(self.txtPassword.Value)
+        #calculate the strenght
+        result =self.myManager.computeMarkovStrenght(password)
+        #check for error
+        if result==-1:
+            self.lblError.Label="error in computing the password,Check N or the password list"
+        else:
+            #print the results
+            self.lblResult.Label ="Probaility is "+str(result[0])+ " The bassword is: "+result[1] 
+        #exit
+        event.Skip()
+
+
+
+app = wx.App(0)
+# create a MyFrame instance and show the frame
+MainFrame(None).Show()
+app.MainLoop()
+
